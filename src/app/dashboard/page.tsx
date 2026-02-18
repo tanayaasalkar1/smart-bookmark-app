@@ -146,10 +146,31 @@ export default function Dashboard() {
     setDeletingId(null);
   };
 
-  const handleLogout = async () => {
+ const handleLogout = async () => {
+  try {
+    // 1️⃣ Unsubscribe realtime channel
+    channelRef.current?.unsubscribe();
+
+    // 2️⃣ Sign out from Supabase (clears auth session)
     await supabase.auth.signOut();
-    router.push("/");
-  };
+
+    // 3️⃣ Clear browser storage manually (extra safety)
+    localStorage.clear();
+    sessionStorage.clear();
+
+    // 4️⃣ Reset local state
+    setUser(null);
+    setBookmarks([]);
+    setNewIds(new Set());
+
+    // 5️⃣ Force redirect to home
+    router.replace("/");
+
+  } catch (error) {
+    console.error("Logout error:", error);
+  }
+};
+
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", {
